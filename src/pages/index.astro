@@ -1,42 +1,46 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro"
-import { buttonVariants } from "@/components/ui/button";
+import Sidebar from "@/components/AppSidebar";
+
+import fs from 'fs';
+import path from 'path';
+
+const ROOT = path.resolve(process.cwd(), 'system-prompts-and-models-of-ai-tools');
+
+type MenuItem = {
+  label: string;
+  href?: string;
+  children?: MenuItem[];
+};
+
+function getMenuItems(dir: string, base: string = '', filter: (entry: fs.Dirent) => boolean = () => true): MenuItem[] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  return entries
+    .filter(entry => filter(entry))
+    .map((entry): MenuItem => {
+      if (entry.isDirectory()) {
+        return {
+          label: entry.name,
+          children: getMenuItems(path.join(dir, entry.name), path.join(base, entry.name)),
+        };
+      } else {
+        return {
+          label: entry.name,
+          href: `/system-prompts-and-models-of-ai-tools/${base ? base + '/' : ''}${entry.name}`,
+        };
+      }
+    });
+}
+
+const sidebarTree: MenuItem[] = getMenuItems(ROOT, '', (entry) => entry.isDirectory() && !entry.name.startsWith("."));
+
 ---
 
 <BaseLayout
   title="Astro Shadcn UI Template"
   description="This template helps you build apps with Astro, Tailwind CSS, and Shadcn UI."
 >
-  <section class="container grid items-center gap-6 pt-6 pb-8 md:py-10">
-    <div class="flex max-w-[980px] flex-col items-start gap-2">
-      <h1
-        class="text-3xl leading-tight font-extrabold tracking-tighter md:text-4xl"
-      >
-        Astro Shadcn UI Template <br class="hidden sm:inline" />
-        built with Radix UI and Tailwind CSS.
-      </h1>
-      <p class="text-muted-foreground max-w-[700px] text-lg">
-        Accessible and customizable components that you can copy and paste into
-        your apps. Free. Open Source.
-      </p>
-    </div>
-    <div class="flex gap-4">
-      <a
-        href="https://ui.shadcn.com"
-        target="_blank"
-        rel="noreferrer"
-        class={buttonVariants()}
-      >
-        Documentation
-      </a>
-      <a
-        href="https://github.com/AREA44/astro-shadcn-ui-template"
-        target="_blank"
-        rel="noreferrer"
-        class={buttonVariants({ variant: "outline" })}
-      >
-        GitHub
-      </a>
-    </div>
-  </section>
+  <div class="flex">
+    <Sidebar menu={sidebarTree} client:load/>
+  </div>
 </BaseLayout>
