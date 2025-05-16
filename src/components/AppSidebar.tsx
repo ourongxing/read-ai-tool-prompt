@@ -1,15 +1,12 @@
-import React from "react";
 import {
   SidebarProvider,
   Sidebar,
   SidebarContent,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarMenuSub,
   SidebarMenuSubItem,
-  SidebarMenuSubButton,
   SidebarGroup,
   SidebarGroupContent,
 } from "./ui/sidebar";
@@ -22,42 +19,54 @@ export type MenuItem = {
   children?: MenuItem[];
 };
 
+const MenuItem = ({ item, level = 0 }: { item: MenuItem; level?: number }) => {
+  const hasChildren = Boolean(item.children?.length);
+
+  if (!hasChildren) {
+    return (
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <a href={item.href}>
+            <span>{item.label}</span>
+          </a>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    );
+  }
+
+  return (
+    <Collapsible className="group/collapsible" defaultOpen={false}>
+      <SidebarMenuItem>
+        <CollapsibleTrigger asChild>
+          <SidebarMenuButton>
+            <span className="truncate">{item.label}</span>
+            <ChevronRight className="transition-transform ml-auto flex-shrink-0 group-data-[state=open]/collapsible:rotate-90" />
+          </SidebarMenuButton>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <SidebarMenuSub className="overflow-hidden">
+            {item.children?.map((child, index) => (
+              <SidebarMenuSubItem key={index} className="overflow-hidden">
+                <MenuItem item={child} level={level + 1} />
+              </SidebarMenuSubItem>
+            ))}
+          </SidebarMenuSub>
+        </CollapsibleContent>
+      </SidebarMenuItem>
+    </Collapsible>
+  );
+};
+
 export default function AppSidebar({ menu }: { menu: MenuItem[] }) {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarContent>
+        <SidebarContent className="overflow-hidden">
           <SidebarGroup>
             <SidebarGroupContent>
-              <SidebarMenu>
+              <SidebarMenu className="overflow-hidden">
                 {menu.map((item, index) => (
-                  <Collapsible
-                    key={index}
-                    className="group/collapsible"
-                    defaultOpen={index === 0}
-                  >
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton>
-                          <span>{item.label}</span>
-                          <ChevronRight className="transition-transform ml-auto group-data-[state=open]/collapsible:rotate-90" />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {item.children?.map((subItem, subIndex) => (
-                            <SidebarMenuSubItem key={subIndex}>
-                              <SidebarMenuSubButton asChild>
-                                <a href={subItem.href}>
-                                  <span>{subItem.label}</span>
-                                </a>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
+                  <MenuItem key={index} item={item} />
                 ))}
               </SidebarMenu>
             </SidebarGroupContent>
@@ -65,5 +74,5 @@ export default function AppSidebar({ menu }: { menu: MenuItem[] }) {
         </SidebarContent>
       </Sidebar>
     </SidebarProvider>
-  )
+  );
 }

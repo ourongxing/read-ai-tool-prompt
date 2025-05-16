@@ -41,6 +41,6 @@ const sidebarTree: MenuItem[] = getMenuItems(ROOT, '', (entry) => entry.isDirect
   description="This template helps you build apps with Astro, Tailwind CSS, and Shadcn UI."
 >
   <div class="flex">
-    <Sidebar menu={sidebarTree} client:load/>
+    <Sidebar menu={sidebarTree} client:idle/>
   </div>
 </BaseLayout>
